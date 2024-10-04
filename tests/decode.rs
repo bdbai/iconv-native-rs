@@ -7,6 +7,7 @@ use strings::*;
 fn test_decode_lossy_success() {
     let testcases = [
         (TEST_UTF8, "utf-8"),
+        (TEST_UTF8_BOM, "utf-8"),
         (TEST_UTF16_LE, "utf-16"),
         (TEST_UTF16_BE_BOM, "utf-16"),
         (TEST_UTF16_LE, "utf-16le"),

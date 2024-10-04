@@ -2,10 +2,15 @@
 
 extern crate alloc;
 
-#[cfg(any(all(windows, feature = "win32")))]
+#[cfg(any(
+    all(windows, feature = "win32"),
+    all(target_arch = "wasm32", feature = "web_encoding")
+))]
 mod encoding;
 mod error;
 mod sys;
+#[cfg(feature = "widestring")]
+mod wide;
 
 pub use error::ConvertLossyError;
 

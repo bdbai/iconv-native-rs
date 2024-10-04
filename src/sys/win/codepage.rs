@@ -45,10 +45,10 @@ pub(super) fn encoding_to_codepage(encoding: &str) -> Option<u32> {
         let byte_order =
             trim_encoding_prefix(encoding, digits).expect("utf encoding without digits");
         match (digits, byte_order) {
-            ("16", "le" | "") => return Some(CODEPAGE_UTF16),
-            ("32", "le" | "") => return Some(CODEPAGE_UTF32),
-            ("16", "be") => return Some(CODEPAGE_UTF16BE),
-            ("32", "be") => return Some(CODEPAGE_UTF32BE),
+            ("16", "le" | "LE" | "") => return Some(CODEPAGE_UTF16),
+            ("32", "le" | "LE" | "") => return Some(CODEPAGE_UTF32),
+            ("16", "be" | "BE") => return Some(CODEPAGE_UTF16BE),
+            ("32", "be" | "BE") => return Some(CODEPAGE_UTF32BE),
             _ => return None,
         }
     }

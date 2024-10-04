@@ -4,22 +4,33 @@ description = "A lightweight text encoding converter based on platform native AP
 version = "0.1.0-alpha.1"
 authors = ["bdbai <bdbaiapp@163.com>"]
 categories = ["text-processing", "encoding", "internationalization"]
-keywords = ["encoding", "unicode", "charset", "iconv"]
+keywords = ["encoding", "unicode", "wasm", "iconv"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
 rust-version = "1.80"
 
 [features]
-default = ["win32"]
+default = ["win32", "web_encoding"]
 win32 = ["widestring", "windows-sys"]
+web_encoding = ["widestring", "web-sys"]
 wasm_nonstandard_allow_legacy_encoding = []
 
 [dependencies]
+widestring = { version = "1", optional = true, features = [
+    "alloc",
+], default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", optional = true, features = [
     "Win32_Globalization",
 ] }
-widestring = { version = "1", optional = true, features = [
-    "alloc",
-], default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = { version = "0.3", optional = true, features = [
+    "TextEncoder",
+    "TextDecoder",
+    "TextDecoderOptions",
+] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3"
