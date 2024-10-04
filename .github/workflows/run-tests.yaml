@@ -32,4 +32,4 @@ jobs:
       - name: Install wasm32-unknown-unknown target
         run: rustup target add wasm32-unknown-unknown
       - name: Run tests
-        run: wasm-pack.exe test --node
+        run: wasm-pack test --node
