@@ -2,7 +2,7 @@
 
 extern crate alloc;
 
-#[cfg(any(windows, feature = "win32"))]
+#[cfg(any(all(windows, feature = "win32")))]
 mod encoding;
 mod error;
 mod sys;
