@@ -13,7 +13,8 @@ pub const TEST_UTF16_BE_BOM: &[u8] = b"\xfe\xff\x82\x99\x5b\x81\x5a\x1c";
 pub const TEST_UTF16_BE_BOM_2: &[u8] = b"\xfe\xff\xfe\xff\x82\x99\x5b\x81\x5a\x1c";
 pub const TEST_UTF32_LE: &[u8] = b"\x99\x82\0\0\x81\x5b\0\0\x1c\x5a\0\0";
 pub const TEST_UTF32_LE_BOM: &[u8] = b"\xff\xfe\0\0\x99\x82\0\0\x81\x5b\0\0\x1c\x5a\0\0";
-pub const TEST_UTF32_LE_BOM_2: &[u8] = b"\xff\xfe\0\0\xff\xfe\0\0\x99\x82\0\0\x81\x5b\0\0\x1c\x5a\0\0";
+pub const TEST_UTF32_LE_BOM_2: &[u8] =
+    b"\xff\xfe\0\0\xff\xfe\0\0\x99\x82\0\0\x81\x5b\0\0\x1c\x5a\0\0";
 pub const TEST_UTF32_BE: &[u8] = b"\0\0\x82\x99\0\0\x5b\x81\0\0\x5a\x1c";
 pub const TEST_UTF32_BE_BOM: &[u8] = b"\0\0\xfe\xff\0\0\x82\x99\0\0\x5b\x81\0\0\x5a\x1c";
 pub const TEST_UTF32_BE_BOM_2: &[u8] =
@@ -28,8 +29,7 @@ cfg_if! {
             feature = "libc-iconv",
             any(
                 all(target_env = "gnu", target_os = "linux"),
-                target_os = "hurd",
-                target_vendor = "apple"
+                target_os = "hurd"
             )
         )
     ))] {
