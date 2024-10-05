@@ -1,10 +1,17 @@
-#![no_std]
+#![cfg_attr(
+    any(
+        all(windows, feature = "win32"),
+        all(target_arch = "wasm32", feature = "web-encoding"),
+    ),
+    no_std
+)]
 
 extern crate alloc;
 
+mod bom;
 #[cfg(any(
     all(windows, feature = "win32"),
-    all(target_arch = "wasm32", feature = "web_encoding")
+    all(target_arch = "wasm32", feature = "web-encoding")
 ))]
 mod encoding;
 mod error;

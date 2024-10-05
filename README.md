@@ -13,17 +13,27 @@ By default this crate uses [`MultiByteToWideChar`](https://learn.microsoft.com/e
 
 You may also disable disable default features and enable `libiconv` to use the `libiconv` library instead.
 
-### Unix (WIP)
+### Linux
 
-TODO: glibc iconv or libiconv
+On Linux with glibc, the built-in [`iconv`](https://man7.org/linux/man-pages/man3/iconv.3.html) is used by default, controlled by feature `libc-iconv`. You may also disable default features and enable `libiconv` to use the `libiconv` library instead.
+
+Other libcs may not have an `iconv` implementation that is compatible with glibc's, hence `libc-iconv` feature does not apply to them. By default, `fallback-libiconv` feature applies and will link to the `libiconv` library. Make sure to have `libiconv` installed on user's system.
+
+### macOS
+
+Same as Linux with glibc.
+
+### Other
+
+On other platforms, the `libiconv` library is used by default, controlled by feature `fallback-libiconv`.
 
 ### Web (WASM) (WIP)
 
 Uses [`TextDecoder`] and [`TextEncoder`] Web APIs. [`widestring`](https://docs.rs/widestring/latest/widestring/) crate is used to handle UTF-16 and UTF-32 related conversions.
 
 > [!IMPORTANT]
-> As per [Encoding Standard](https://encoding.spec.whatwg.org/#interface-textencoder), a standard-compliant browser supports only UTF-8 when using [`TextEncoder`], hence conversions to any encodings other than UTF-8/UTF-16/UTF-32 (including LE/BE variants) are not supported and will result in an `UnknownToEncoding` error.
-> Consider import a [polyfill](https://www.npmjs.com/package/text-encoding-polyfill) and enable `wasm_nonstandard_allow_legacy_encoding` feature if full encoding support is required, in which case 
+> As per [Encoding Standard](https://encoding.spec.whatwg.org/#interface-textencoder), a standard-compliant browser supports only UTF-8 when using [`TextEncoder`], hence conversions to any encodings other than UTF-8/UTF-16/UTF-32 (including LE/BE variants) are not supported and will result in an `UnknownConversion` error.
+> Consider import a [polyfill](https://www.npmjs.com/package/text-encoding-polyfill) and enable `wasm-nonstandard-allow-legacy-encoding` feature if full encoding support is required, in which case 
 > most of the encodings will work. However, there is no guarantee as it is not a standard-compliant behavior.
 
 [`TextDecoder`]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder

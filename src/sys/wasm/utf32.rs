@@ -2,7 +2,7 @@ use alloc::{string::String, vec::Vec};
 
 use widestring::encode_utf32;
 
-use crate::wide::ByteOrderMarkExt;
+use crate::bom::ByteOrderMarkExt;
 
 pub(super) fn string_to_utf32_lossy(
     input: String,

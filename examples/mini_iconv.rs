@@ -72,13 +72,9 @@ fn main() {
         Ok(res) => {
             stdout().write_all(&res).unwrap();
         }
-        Err(ConvertLossyError::UnknownFromEncoding) => {
-            eprintln!("Unknown source encoding");
+        Err(ConvertLossyError::UnknownConversion) => {
+            eprintln!("Unknown encoding");
             std::process::exit(3);
-        }
-        Err(ConvertLossyError::UnknownToEncoding) => {
-            eprintln!("Unknown destination encoding");
-            std::process::exit(4);
         }
     }
 }

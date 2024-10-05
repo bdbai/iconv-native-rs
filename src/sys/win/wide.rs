@@ -9,7 +9,7 @@ use super::codepage::{
     CODEPAGE_UTF8,
 };
 use super::utf32::{utf32_to_wide_lossy, wide_to_utf32_lossy};
-use crate::wide::{ByteOrderMark, ByteOrderMarkExt};
+use crate::bom::{ByteOrderMark, ByteOrderMarkExt};
 use crate::{encoding::is_encoding_byte_order_ambiguous, ConvertLossyError};
 
 fn decode_wide_lossy(
@@ -90,7 +90,7 @@ fn decode_wide_lossy(
     unsafe {
         let size = MultiByteToWideChar(codepage, 0, input.as_ptr(), input_len, null_mut(), 0);
         if size <= 0 {
-            return Err(ConvertLossyError::UnknownFromEncoding);
+            return Err(ConvertLossyError::UnknownConversion);
         }
         output.reserve_exact(size as usize);
         let cap = output.capacity().try_into().unwrap();
@@ -170,7 +170,7 @@ fn encode_wide(
             null_mut(),
         );
         if size <= 0 {
-            return Err(ConvertLossyError::UnknownToEncoding);
+            return Err(ConvertLossyError::UnknownConversion);
         }
         output.reserve_exact(size as usize);
         let cap = output.capacity().try_into().unwrap();
@@ -199,9 +199,9 @@ pub fn convert_lossy(
     ignore_bom: bool,
 ) -> Result<Vec<u8>, ConvertLossyError> {
     let from_codepage =
-        encoding_to_codepage(from_encoding).ok_or(ConvertLossyError::UnknownFromEncoding)?;
+        encoding_to_codepage(from_encoding).ok_or(ConvertLossyError::UnknownConversion)?;
     let to_codepage =
-        encoding_to_codepage(to_encoding).ok_or(ConvertLossyError::UnknownToEncoding)?;
+        encoding_to_codepage(to_encoding).ok_or(ConvertLossyError::UnknownConversion)?;
     if from_codepage == to_codepage {
         let mut input = input.as_ref();
         if ignore_bom && from_codepage == CODEPAGE_UTF8 && input.get_utf8_bom().is_present() {

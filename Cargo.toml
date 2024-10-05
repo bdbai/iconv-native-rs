@@ -10,12 +10,16 @@ license = "MIT OR Apache-2.0"
 rust-version = "1.80"
 
 [features]
-default = ["win32", "web_encoding"]
+default = ["win32", "web-encoding", "libc-iconv", "fallback-libiconv"]
 win32 = ["widestring", "windows-sys"]
-web_encoding = ["widestring", "web-sys"]
-wasm_nonstandard_allow_legacy_encoding = []
+web-encoding = ["widestring", "web-sys"]
+wasm-nonstandard-allow-legacy-encoding = []
+libc-iconv = []
+libiconv = []
+fallback-libiconv = []
 
 [dependencies]
+cfg-if = "1"
 widestring = { version = "1", optional = true, features = [
     "alloc",
 ], default-features = false }
@@ -37,3 +41,6 @@ wasm-bindgen-test = "0.3"
 
 [dev-dependencies]
 lexopt = "0.3"
+
+[target.'cfg(windows)'.build-dependencies]
+vcpkg = "0.2"

@@ -1,11 +1,11 @@
 use alloc::{string::String, vec::Vec};
 use widestring::encode_utf16;
 
+use crate::bom::ByteOrderMarkExt;
 use crate::encoding::match_encoding_parts_exact;
-use crate::wide::ByteOrderMarkExt;
 
 pub(super) fn adjust_utf16_params(encoding: &mut &str, input: &mut &[u8]) {
-    if !match_encoding_parts_exact(*encoding, &["utf", "16"]) {
+    if !match_encoding_parts_exact(encoding, &["utf", "16"]) {
         return;
     }
     if input.get(0..2) == Some(&[0xFF, 0xFE]) {

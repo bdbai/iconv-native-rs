@@ -7,12 +7,11 @@ use web_sys::{js_sys, TextDecoder, TextDecoderOptions};
 mod utf16;
 mod utf32;
 
+use crate::bom::{ByteOrderMark, ByteOrderMarkExt};
 use crate::encoding::{
     is_encoding_byte_order_ambiguous, match_encoding_parts_exact, trim_encoding_prefix,
 };
-use crate::wide::{
-    try_decode_utf16_lossy, try_decode_utf32_lossy, ByteOrderMark, ByteOrderMarkExt,
-};
+use crate::wide::{try_decode_utf16_lossy, try_decode_utf32_lossy};
 use crate::ConvertLossyError;
 use utf16::{adjust_utf16_params, string_to_utf16_lossy};
 
@@ -59,9 +58,9 @@ pub fn convert_lossy(
     mut from_encoding: &str,
     to_encoding: &str,
 ) -> Result<Vec<u8>, ConvertLossyError> {
-    #[cfg(not(feature = "wasm_nonstandard_allow_legacy_encoding"))]
+    #[cfg(not(feature = "wasm-nonstandard-allow-legacy-encoding"))]
     if crate::encoding::trim_encoding_prefix(to_encoding, "utf").is_none() {
-        return Err(ConvertLossyError::UnknownToEncoding);
+        return Err(ConvertLossyError::UnknownConversion);
     }
 
     if from_encoding.eq_ignore_ascii_case(to_encoding)
@@ -88,7 +87,7 @@ pub fn convert_lossy(
                 .set_ignoreBOM(true);
         }
         let decoder = TextDecoder::new_with_label_and_options(from_encoding, &options)
-            .map_err(|_| ConvertLossyError::UnknownFromEncoding)?;
+            .map_err(|_| ConvertLossyError::UnknownConversion)?;
         let decoder = TextDecoderImmutable::unchecked_from_js(decoder.into());
         decoder
             .decode_raw_with_u8_array(input)
@@ -124,11 +123,11 @@ pub fn convert_lossy(
             }
             Ok(res)
         } else {
-            Err(ConvertLossyError::UnknownToEncoding)
+            Err(ConvertLossyError::UnknownConversion)
         }
     } else {
         let options = js_sys::Object::new();
-        #[cfg(feature = "wasm_nonstandard_allow_legacy_encoding")]
+        #[cfg(feature = "wasm-nonstandard-allow-legacy-encoding")]
         {
             Reflect::set(
                 &options,
@@ -138,14 +137,14 @@ pub fn convert_lossy(
             .expect("failed to set NONSTANDARD_allowLegacyEncoding");
         }
         let encoder = TextEncoderNonStandard::new_with_label(to_encoding, options)
-            .map_err(|_| ConvertLossyError::UnknownToEncoding)?;
-        #[cfg(feature = "wasm_nonstandard_allow_legacy_encoding")]
+            .map_err(|_| ConvertLossyError::UnknownConversion)?;
+        #[cfg(feature = "wasm-nonstandard-allow-legacy-encoding")]
         {
             if !match_encoding_parts_exact(to_encoding, &["utf", "8"])
                 && encoder.get_encoding().as_deref() == Some("utf-8")
             {
                 // Maybe using a non-polyfilled TextEncoder
-                return Err(ConvertLossyError::UnknownToEncoding);
+                return Err(ConvertLossyError::UnknownConversion);
             }
         }
         Ok(encoder.encode_with_raw_input(decoded))
@@ -160,8 +159,8 @@ pub fn decode_lossy(input: impl AsRef<[u8]>, encoding: &str) -> Result<String, C
     }
 
     let input = input.as_ref();
-    let decoder = TextDecoder::new_with_label(encoding)
-        .map_err(|_| ConvertLossyError::UnknownFromEncoding)?;
+    let decoder =
+        TextDecoder::new_with_label(encoding).map_err(|_| ConvertLossyError::UnknownConversion)?;
     let decoder = TextDecoderImmutable::unchecked_from_js(decoder.into());
     let str = decoder
         .decode_with_u8_array(input)
