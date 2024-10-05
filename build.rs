@@ -18,8 +18,6 @@ fn main() {
         if is_windows {
             #[cfg(target_env = "msvc")]
             vcpkg::find_package("libiconv").unwrap();
-        } else {
-            println!("cargo:rustc-link-lib=iconv");
         }
     }
 }

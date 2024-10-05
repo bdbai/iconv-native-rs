@@ -18,6 +18,7 @@ cfg_if! {
             target_vendor = "apple"
         )
     ))] {
+        #[cfg_attr(target_vendor = "apple", link(name = "iconv"))]
         extern "C" {
             pub fn iconv_open(tocode: *const c_char, fromcode: *const c_char) -> iconv_t;
             pub fn iconv(
