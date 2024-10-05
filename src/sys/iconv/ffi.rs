@@ -123,7 +123,7 @@ fn is_last_error_e2big() -> bool {
 
 #[cfg(not(windows))]
 fn is_last_error_e2big() -> bool {
-    std::io::Error::last_os_error().raw_os_error() == Some(7)
+    dbg!(std::io::Error::last_os_error().raw_os_error()) == Some(7)
 }
 
 impl Drop for LossyIconv {
