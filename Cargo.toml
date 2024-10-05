@@ -42,5 +42,5 @@ wasm-bindgen-test = "0.3"
 [dev-dependencies]
 lexopt = "0.3"
 
-[target.'cfg(windows)'.build-dependencies]
+[target.'cfg(target_env = "msvc")'.build-dependencies]
 vcpkg = "0.2"
