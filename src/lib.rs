@@ -16,7 +16,10 @@ mod bom;
 mod encoding;
 mod error;
 mod sys;
-#[cfg(feature = "widestring")]
+#[cfg(any(
+    all(windows, feature = "win32"),
+    all(target_arch = "wasm32", feature = "web-encoding")
+))]
 mod wide;
 
 pub use error::ConvertLossyError;
