@@ -24,6 +24,14 @@ cfg_if! {
     if #[cfg(any(
         all(windows, feature = "win32"),
         all(target_arch = "wasm32", feature = "web-encoding"),
+        all(
+            feature = "libc-iconv",
+            any(
+                all(target_env = "gnu", target_os = "linux"),
+                target_os = "hurd",
+                target_vendor = "apple"
+            )
+        )
     ))] {
         pub const TEST_UTF16_DE: &[u8] = TEST_UTF16_LE;
         pub const TEST_UTF16_DE_BOM: &[u8] = TEST_UTF16_LE_BOM;
