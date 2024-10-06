@@ -2,7 +2,7 @@ use alloc::{string::String, vec::Vec};
 
 use widestring::encode_utf32;
 
-pub(super) fn string_to_utf32_lossy(
+pub(super) fn string_to_utf32(
     input: String,
     add_bom: bool,
     mut bytes_to_num: impl FnMut(u32) -> [u8; 4],

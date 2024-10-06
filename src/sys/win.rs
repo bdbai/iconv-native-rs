@@ -11,7 +11,7 @@ use crate::utf::{decode_utf_lossy, UtfEncoding};
 use crate::ConvertLossyError;
 
 pub fn convert_lossy(
-    input: impl AsRef<[u8]>,
+    input: &[u8],
     from_encoding: &str,
     to_encoding: &str,
 ) -> Result<Vec<u8>, ConvertLossyError> {

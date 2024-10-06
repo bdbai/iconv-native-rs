@@ -4,11 +4,8 @@ use widestring::{decode_utf16_lossy, decode_utf32_lossy};
 
 use super::{UtfEncoding, UtfType};
 
-fn decode_utf16_lossy_inner(
-    input: impl AsRef<[u8]>,
-    mut bytes_to_num: impl FnMut([u8; 2]) -> u16,
-) -> String {
-    let mut input_iter = input.as_ref().chunks_exact(2);
+fn decode_utf16_lossy_inner(input: &[u8], mut bytes_to_num: impl FnMut([u8; 2]) -> u16) -> String {
+    let mut input_iter = input.chunks_exact(2);
     let mut res = decode_utf16_lossy(
         input_iter
             .by_ref()
@@ -21,11 +18,8 @@ fn decode_utf16_lossy_inner(
     res
 }
 
-fn decode_utf32_lossy_inner(
-    input: impl AsRef<[u8]>,
-    mut bytes_to_num: impl FnMut([u8; 4]) -> u32,
-) -> String {
-    let mut input_iter = input.as_ref().chunks_exact(4);
+fn decode_utf32_lossy_inner(input: &[u8], mut bytes_to_num: impl FnMut([u8; 4]) -> u32) -> String {
+    let mut input_iter = input.chunks_exact(4);
     let mut res = decode_utf32_lossy(
         input_iter
             .by_ref()

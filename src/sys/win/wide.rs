@@ -9,7 +9,7 @@ use super::codepage::{
     encoding_to_codepage, CODEPAGE_UTF16, CODEPAGE_UTF16BE, CODEPAGE_UTF32, CODEPAGE_UTF32BE,
     CODEPAGE_UTF8,
 };
-use super::utf16::utf16_to_wide_lossy;
+use super::utf16::utf16_to_wide;
 use super::utf32::{utf32_to_wide_lossy, wide_to_utf32_lossy};
 use crate::utf::{UtfEncoding, UtfType};
 use crate::{encoding::is_encoding_byte_order_ambiguous, ConvertLossyError};
@@ -44,12 +44,7 @@ fn decode_wide_lossy(input: &[u8], codepage: u32) -> Result<Vec<u16>, ConvertLos
     Ok(output)
 }
 
-fn encode_wide(
-    input: impl AsRef<[u16]>,
-    codepage: u32,
-    add_bom: bool,
-) -> Result<Vec<u8>, ConvertLossyError> {
-    let input = input.as_ref();
+fn encode_wide(input: &[u16], codepage: u32, add_bom: bool) -> Result<Vec<u8>, ConvertLossyError> {
     if let CODEPAGE_UTF16 | CODEPAGE_UTF16BE = codepage {
         let is_le = codepage == CODEPAGE_UTF16;
         let mut output = Vec::with_capacity(input.len() * 2 + if add_bom { 2 } else { 0 });
@@ -127,7 +122,7 @@ fn encode_wide(
 }
 
 pub fn convert_lossy(
-    input: impl AsRef<[u8]>,
+    mut input: &[u8],
     from_encoding: &str,
     to_encoding: &str,
 ) -> Result<Vec<u8>, ConvertLossyError> {
@@ -135,9 +130,8 @@ pub fn convert_lossy(
         encoding_to_codepage(from_encoding).ok_or(ConvertLossyError::UnknownConversion)?;
     let to_codepage =
         encoding_to_codepage(to_encoding).ok_or(ConvertLossyError::UnknownConversion)?;
-    let mut input = input.as_ref();
     if from_codepage == to_codepage {
-        return Ok(input.as_ref().to_vec());
+        return Ok(input.to_vec());
     }
     let wide = if let Some(from_utf) = UtfEncoding::from_str(from_encoding)
         .ok()
@@ -146,8 +140,8 @@ pub fn convert_lossy(
         let byte_order = from_utf.consume_input_bom(&mut input);
         let is_le = byte_order.is_le(true);
         match (from_utf.r#type(), is_le) {
-            (UtfType::Utf16, true) => utf16_to_wide_lossy(input, u16::from_le_bytes),
-            (UtfType::Utf16, false) => utf16_to_wide_lossy(input, u16::from_be_bytes),
+            (UtfType::Utf16, true) => utf16_to_wide(input, u16::from_le_bytes),
+            (UtfType::Utf16, false) => utf16_to_wide(input, u16::from_be_bytes),
             (UtfType::Utf32, true) => utf32_to_wide_lossy(input, u32::from_le_bytes),
             (UtfType::Utf32, false) => utf32_to_wide_lossy(input, u32::from_be_bytes),
             _ => unreachable!(),
@@ -156,7 +150,7 @@ pub fn convert_lossy(
         decode_wide_lossy(input, from_codepage)?
     };
     encode_wide(
-        wide,
+        &wide,
         to_codepage,
         is_encoding_byte_order_ambiguous(to_encoding),
     )

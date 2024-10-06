@@ -16,7 +16,7 @@ mod utf;
 
 use core::str::FromStr;
 
-pub use error::ConvertLossyError;
+pub use error::{ConvertError, ConvertLossyError};
 
 use alloc::{string::String, vec::Vec};
 
@@ -25,7 +25,7 @@ pub fn convert_lossy(
     from_encoding: &str,
     to_encoding: &str,
 ) -> Result<Vec<u8>, ConvertLossyError> {
-    sys::convert_lossy(input, from_encoding, to_encoding)
+    sys::convert_lossy(input.as_ref(), from_encoding, to_encoding)
 }
 
 pub fn decode_lossy(input: impl AsRef<[u8]>, encoding: &str) -> Result<String, ConvertLossyError> {

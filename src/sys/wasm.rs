@@ -2,7 +2,7 @@ use core::str::FromStr;
 
 use alloc::{string::String, vec::Vec};
 
-use utf32::string_to_utf32_lossy;
+use utf32::string_to_utf32;
 use web_sys::wasm_bindgen::{JsCast, JsValue};
 use web_sys::{js_sys, TextDecoder, TextDecoderOptions};
 
@@ -13,10 +13,10 @@ mod utf32;
 use crate::utf::{decode_utf_lossy, UtfEncoding, UtfType};
 use crate::ConvertLossyError;
 use ffi::*;
-use utf16::string_to_utf16_lossy;
+use utf16::string_to_utf16;
 
 pub fn convert_lossy(
-    input: impl AsRef<[u8]>,
+    input: &[u8],
     from_encoding: &str,
     to_encoding: &str,
 ) -> Result<Vec<u8>, ConvertLossyError> {
@@ -31,10 +31,8 @@ pub fn convert_lossy(
     if from_encoding.eq_ignore_ascii_case(to_encoding)
         || (from_utf == to_utf && from_utf.map_or(false, |u| u.is_utf8()))
     {
-        return Ok(input.as_ref().to_vec());
+        return Ok(input.to_vec());
     }
-
-    let input = input.as_ref();
 
     let decoded = if let Some(str) = from_utf
         // TextDecoder tends to remove BOMs. Use widestring to preserve them.
@@ -61,10 +59,10 @@ pub fn convert_lossy(
         let add_bom = to_utf.is_ambiguous();
         Ok(match (to_utf.r#type(), to_utf.byte_order().is_le(true)) {
             (UtfType::Utf8, _) => decoded.into_bytes(),
-            (UtfType::Utf16, true) => string_to_utf16_lossy(decoded, add_bom, u16::to_le_bytes),
-            (UtfType::Utf16, false) => string_to_utf16_lossy(decoded, add_bom, u16::to_be_bytes),
-            (UtfType::Utf32, true) => string_to_utf32_lossy(decoded, add_bom, u32::to_le_bytes),
-            (UtfType::Utf32, false) => string_to_utf32_lossy(decoded, add_bom, u32::to_be_bytes),
+            (UtfType::Utf16, true) => string_to_utf16(decoded, add_bom, u16::to_le_bytes),
+            (UtfType::Utf16, false) => string_to_utf16(decoded, add_bom, u16::to_be_bytes),
+            (UtfType::Utf32, true) => string_to_utf32(decoded, add_bom, u32::to_le_bytes),
+            (UtfType::Utf32, false) => string_to_utf32(decoded, add_bom, u32::to_be_bytes),
         })
     } else {
         let options = js_sys::Object::new();

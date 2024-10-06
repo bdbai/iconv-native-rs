@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 
-pub(super) fn utf16_to_wide_lossy(
+pub(super) fn utf16_to_wide(
     input: &[u8],
     mut bytes_to_num: impl FnMut([u8; 2]) -> u16,
 ) -> Vec<u16> {

@@ -3,7 +3,7 @@
 [![crates.io](https://img.shields.io/crates/v/iconv-native.svg)](https://crates.io/crates/iconv-native)
 [![Released API docs](https://docs.rs/iconv-native/badge.svg)](https://docs.rs/iconv-native)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![CI](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yml/badge.svg)](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yml)
+[![CI](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yaml/badge.svg)](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yaml)
 
 A lightweight text encoding converter based on platform native API or libiconv.
 
@@ -31,7 +31,7 @@ Same as Linux with glibc.
 
 On other platforms, the `libiconv` library is used by default, controlled by feature `fallback-libiconv`.
 
-### Web (WASM) (WIP)
+### Web (WASM)
 
 Uses [`TextDecoder`] and [`TextEncoder`] Web APIs. [`widestring`](https://docs.rs/widestring/latest/widestring/) crate is used to handle UTF-16 and UTF-32 related conversions.
 

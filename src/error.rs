@@ -1,6 +1,5 @@
 use core::fmt;
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq)]
 pub enum ConvertError {
     UnknownConversion,

@@ -57,6 +57,7 @@ cfg_if! {
 pub struct LossyIconv(iconv_t);
 
 unsafe impl Send for LossyIconv {}
+unsafe impl Sync for LossyIconv {}
 
 impl LossyIconv {
     pub fn new(from_encoding: &str, to_encoding: &str) -> Result<Self, ConvertLossyError> {
@@ -66,7 +67,7 @@ impl LossyIconv {
             + if to_encoding.contains("//") {
                 "\0"
             } else {
-                "//IGNORE\0"
+                "//IGNORE//TRANSLIT\0"
             };
         let to_encoding = CString::from_vec_with_nul(to_encoding.into_bytes())
             .map_err(|_| ConvertLossyError::UnknownConversion)?;
@@ -79,7 +80,7 @@ impl LossyIconv {
         }
     }
 
-    pub fn convert(&self, mut input: &[u8]) -> Vec<u8> {
+    pub fn convert(&mut self, mut input: &[u8]) -> Vec<u8> {
         let mut output: Vec<u8> = Vec::with_capacity(input.len());
         unsafe {
             loop {

@@ -1,7 +1,8 @@
 use alloc::{string::String, vec::Vec};
+
 use widestring::encode_utf16;
 
-pub(super) fn string_to_utf16_lossy(
+pub(super) fn string_to_utf16(
     input: String,
     add_bom: bool,
     mut bytes_to_num: impl FnMut(u16) -> [u8; 2],
