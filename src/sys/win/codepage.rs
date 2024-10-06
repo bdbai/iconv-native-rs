@@ -56,7 +56,7 @@ pub(super) fn encoding_to_codepage(encoding: &str) -> Option<u32> {
     }
     if let Some(encoding) = trim_encoding_prefix(encoding, "gb") {
         match encoding {
-            "2312" => return Some(936),
+            "k" | "K" | "2312" => return Some(936),
             "18030" => return Some(54936),
             _ => return None,
         }
@@ -233,6 +233,7 @@ mod tests {
             (51949, "euc-kr"),
             (54936, "GB18030"),
             (936, "gb2312"),
+            (936, "gbk"),
             (52936, "hz-gb-2312"),
             (858, "IBM00858"),
             (20924, "IBM00924"),
