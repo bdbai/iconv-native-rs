@@ -1,4 +1,5 @@
 use core::ffi::{c_char, c_int, c_void};
+use core::ptr::null;
 
 use alloc::{ffi::CString, string::ToString, vec::Vec};
 
@@ -84,8 +85,12 @@ impl LossyIconv {
         let mut output: Vec<u8> = Vec::with_capacity(input.len());
         unsafe {
             loop {
-                let mut inbuf_ptr = input.as_ptr() as *const c_char;
                 let mut inlen = input.len();
+                let mut inbuf_ptr = if inlen == 0 {
+                    null()
+                } else {
+                    input.as_ptr() as *const c_char
+                };
                 let outbuf = output.spare_capacity_mut();
                 let mut outbuf_ptr = outbuf.as_mut_ptr();
                 let mut outlen = outbuf.len();
@@ -99,16 +104,20 @@ impl LossyIconv {
                 let is_last_error_e2big = is_last_error_e2big();
                 let new_len = outbuf.len() - outlen + output.len();
                 output.set_len(new_len);
+                input = &input[input.len() - inlen..];
                 if res as isize == -1 && is_last_error_e2big {
                     // E2BIG
-                    input = &input[input.len() - inlen..];
                     output.reserve(output.capacity() * 2 - output.len());
                     continue;
                 }
                 // glibc: even when //IGNORE is used, iconv may still return EINVAL.
                 // Ignore any errors for a best-effort lossy conversion.
-                output.shrink_to_fit();
-                break output;
+                // When inbuf_ptr is null, it means iconv has been called once with an empty input,
+                // which is essentially a flush being done.
+                if res as isize == -1 || inbuf_ptr.is_null() {
+                    output.shrink_to_fit();
+                    break output;
+                }
             }
         }
     }
