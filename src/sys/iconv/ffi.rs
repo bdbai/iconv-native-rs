@@ -98,17 +98,16 @@ impl LossyIconv {
                 let is_last_error_e2big = is_last_error_e2big();
                 let new_len = outbuf.len() - outlen + output.len();
                 output.set_len(new_len);
-                if res as isize == -1 {
-                    if !is_last_error_e2big {
-                        panic!("iconv error");
-                    }
+                if res as isize == -1 && is_last_error_e2big {
                     // E2BIG
                     input = &input[input.len() - inlen..];
                     output.reserve(output.capacity() * 2 - output.len());
-                } else {
-                    output.shrink_to_fit();
-                    break output;
+                    continue;
                 }
+                // glibc: even when //IGNORE is used, iconv may still return EINVAL.
+                // Ignore any errors for a best-effort lossy conversion.
+                output.shrink_to_fit();
+                break output;
             }
         }
     }
@@ -124,7 +123,7 @@ fn is_last_error_e2big() -> bool {
 
 #[cfg(not(windows))]
 fn is_last_error_e2big() -> bool {
-    dbg!(std::io::Error::last_os_error().raw_os_error()) == Some(7)
+    std::io::Error::last_os_error().raw_os_error() == Some(7)
 }
 
 impl Drop for LossyIconv {

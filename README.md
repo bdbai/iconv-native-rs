@@ -17,7 +17,7 @@ You may also disable disable default features and enable `libiconv` to use the `
 
 On Linux with glibc, the built-in [`iconv`](https://man7.org/linux/man-pages/man3/iconv.3.html) is used by default, controlled by feature `libc-iconv`. You may also disable default features and enable `libiconv` to use the `libiconv` library instead.
 
-Other libcs may not have an `iconv` implementation that is compatible with glibc's, hence `libc-iconv` feature does not apply to them. By default, `fallback-libiconv` feature applies and will link to the `libiconv` library. Make sure to have `libiconv` installed on user's system.
+Other libcs may not have an `iconv` implementation that is compatible with glibc's (specifically the `//IGNORE` extension), hence `libc-iconv` feature does not apply to them. By default, `fallback-libiconv` feature applies and will link to the `libiconv` library. Make sure to have `libiconv` installed on user's system.
 
 ### macOS
 
