@@ -9,6 +9,8 @@ cfg_if! {
     ))] {
         mod decode_lossy;
         pub(crate) use decode_lossy::decode_utf_lossy;
+        mod decode;
+        pub(crate) use decode::decode_utf;
     }
 }
 

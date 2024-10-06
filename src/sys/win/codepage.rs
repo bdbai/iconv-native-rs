@@ -1,3 +1,5 @@
+use core::ops::RangeInclusive;
+
 use crate::encoding::{match_encoding_parts, match_encoding_parts_exact, trim_encoding_prefix};
 
 pub(super) const CODEPAGE_UTF8: u32 = 65001;
@@ -185,6 +187,13 @@ pub(super) fn encoding_to_codepage(encoding: &str) -> Option<u32> {
     }
 
     None
+}
+
+pub(super) fn is_no_flag_codepage(codepage: u32) -> bool {
+    const NO_FLAG_CODEPAGES: [u32; 8] = [50220, 50221, 50222, 50225, 50227, 50229, 65000, 42];
+    const NO_FLAG_RANGES: [RangeInclusive<u32>; 1] = [57002..=57011];
+    NO_FLAG_CODEPAGES.contains(&codepage)
+        || NO_FLAG_RANGES.iter().any(|range| range.contains(&codepage))
 }
 
 #[cfg(test)]

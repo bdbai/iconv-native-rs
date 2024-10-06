@@ -12,15 +12,9 @@ pub(crate) fn trim_encoding_prefix<'i>(ascii_input: &'i str, prefix: &str) -> Op
 
 #[allow(dead_code)]
 pub(crate) fn match_encoding_parts<'i>(input: &'i str, parts: &[&str]) -> Option<&'i str> {
-    let mut input = input;
-    for part in parts {
-        if let Some(remaining) = trim_encoding_prefix(input, part) {
-            input = remaining;
-        } else {
-            return None;
-        }
-    }
-    Some(input)
+    parts
+        .iter()
+        .try_fold(input, |input, &part| trim_encoding_prefix(input, part))
 }
 
 #[allow(dead_code)]
@@ -28,19 +22,71 @@ pub(crate) fn match_encoding_parts_exact(input: &str, parts: &[&str]) -> bool {
     match_encoding_parts(input, parts) == Some("")
 }
 
-#[allow(dead_code)]
-pub(crate) fn is_encoding_byte_order_ambiguous(encoding: &str) -> bool {
-    let Some(rem) = trim_encoding_prefix(encoding, "utf") else {
-        return false;
-    };
-    let rem = if let Some(rem) = trim_encoding_prefix(rem, "16") {
-        rem
-    } else if let Some(rem) = trim_encoding_prefix(rem, "32") {
-        rem
-    } else {
-        return false;
-    };
-    trim_encoding_prefix(rem, "be")
-        .or_else(|| trim_encoding_prefix(rem, "le"))
-        .is_none()
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trim_encoding_prefix() {
+        let testcases = [
+            ("utf8", "UTf", Some("8")),
+            ("uTf-8", "utf", Some("8")),
+            ("UTF_8", "utf", Some("8")),
+            ("UTf 8", "utf", Some("8")),
+            ("utf", "utf", Some("")),
+            ("ut", "utf", None),
+        ];
+
+        for (input, prefix, expected) in testcases {
+            assert_eq!(
+                trim_encoding_prefix(input, prefix),
+                expected,
+                "{input}, {prefix}, {expected:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_match_encoding_parts() {
+        let testcases = [
+            ("utf8", &["utf"][..], Some("8")),
+            ("uTf-8", &["utf", "8"], Some("")),
+            ("utf_7", &["utf", "8"], None),
+            ("utf-16be", &["utf"], Some("16be")),
+            ("utf-16be", &["utf", "16"], Some("be")),
+            ("utf-16be", &["utf", "16", "be"], Some("")),
+            ("utf-16be", &["utf", "16", "le"], None),
+            ("utf-16be", &["utf", "8"], None),
+            ("utf-16-BE", &["utf", "16", "be"], Some("")),
+        ];
+        for (input, parts, expected) in testcases {
+            assert_eq!(
+                match_encoding_parts(input, parts),
+                expected,
+                "{input}, {parts:?}, {expected:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_match_encoding_parts_exact() {
+        let testcases = [
+            ("utf8", &["utf"][..], false),
+            ("uTf-8", &["utf", "8"], true),
+            ("utf_7", &["utf", "8"], false),
+            ("utf-16be", &["utf"], false),
+            ("utf-16be", &["utf", "16"], false),
+            ("utf-16be", &["utf", "16", "be"], true),
+            ("utf-16be", &["utf", "16", "le"], false),
+            ("utf-16be", &["utf", "8"], false),
+            ("utf-16-BE", &["utf", "16", "be"], true),
+        ];
+        for (input, parts, expected) in testcases {
+            assert_eq!(
+                match_encoding_parts_exact(input, parts),
+                expected,
+                "{input}, {parts:?}, {expected}"
+            );
+        }
+    }
 }

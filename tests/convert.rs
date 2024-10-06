@@ -35,7 +35,9 @@ with_harness! {
             (TEST_UTF8_BOM, TEST_UTF16_LE_BOM, "utf-8", "utf-16le"),
             (TEST_UTF16_DE_BOM, TEST_UTF32_DE_BOM, "utf-16", "utf-32"),
         ];
-        for (idx, (input, expected, from_encoding, to_encoding)) in testcases.into_iter().enumerate() {
+        for (idx, (input, expected, from_encoding, to_encoding)) in
+            testcases.into_iter().enumerate()
+        {
             let result = convert(input, from_encoding, to_encoding).unwrap();
             let result_rev = convert(&result, to_encoding, from_encoding).unwrap();
             assert_eq!(
@@ -125,12 +127,37 @@ with_harness! {
     }
 
     fn test_convert_invalid_input() {
-        let result = convert(b"b\xffaa", "utf-8", "utf-16");
-        assert_eq!(result.unwrap_err(), ConvertError::InvalidInput);
+        let testcases = [
+            (&b"b\xffaa"[..], "utf-8", "utf-16", &b"a"[..]),
+            (&TEST_UTF16_DE[..3], "utf-16", "utf-8", b"\xe8\x8a\x99"),
+            (b"\0\xd8\x99\x82", "utf-16le", "utf-32", b"\x99\x82"),
+            (b"\xff\xdc\xbd", "gb18030", "utf-8", b"\xe8\x8a\x99"),
+        ];
+        for (idx, (input, from_encoding, to_encoding, expected_lossy_bytes)) in
+            testcases.into_iter().enumerate()
+        {
+            let idx = idx.to_string();
+            let result = convert(input, from_encoding, to_encoding);
+            let result_lossy =
+                convert_lossy(input, from_encoding, to_encoding).expect(&(idx.clone() + " lossy"));
+            assert_eq!(
+                result.expect_err(&(idx.clone() + " invalid input")),
+                ConvertError::InvalidInput,
+                "{idx}"
+            );
+            for expected_lossy_char in expected_lossy_bytes {
+                assert!(result_lossy.contains(expected_lossy_char), "{idx} lossy");
+            }
+        }
     }
 
-    fn test_convert_lossy_invalid_input() {
-        let result = convert_lossy(b"b\xffaa", "utf-8", "utf-16").unwrap();
-        assert!(result.contains(&b'a'));
+    // `WideCharToMultiByte` supports a `WC_ERR_INVALID_CHARS` flag, but it only works for UTF-8 and
+    // GB18030. Really don't know how to let it fail.
+    #[cfg(not(all(windows, feature = "win32")))]
+    fn test_convert_out_of_range() {
+        let result = convert("🤣b", "utf-8", "iso-8859-1");
+        let result_lossy = convert_lossy("🤣b", "utf-8", "iso-8859-1").unwrap();
+        assert_eq!(result.unwrap_err(), ConvertError::InvalidInput);
+        assert!(result_lossy.contains(&b'b'), "lossy");
     }
 }

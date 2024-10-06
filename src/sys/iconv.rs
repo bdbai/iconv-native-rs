@@ -26,11 +26,13 @@ pub fn convert_lossy(
 pub fn decode(input: &[u8], encoding: &str) -> Result<String, ConvertError> {
     let mut iconv = ffi::Iconv::new(encoding, "UTF-8")?;
     let buf = iconv.convert(input)?;
+    // Safety: relies on the correctness of iconv implementation
     unsafe { Ok(String::from_utf8_unchecked(buf)) }
 }
 
 pub fn decode_lossy(input: &[u8], encoding: &str) -> Result<String, ConvertLossyError> {
     let mut iconv = ffi::LossyIconv::new(encoding, "UTF-8")?;
     let buf = iconv.convert(input);
+    // Safety: relies on the correctness of iconv implementation
     unsafe { Ok(String::from_utf8_unchecked(buf)) }
 }
