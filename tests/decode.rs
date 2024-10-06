@@ -6,7 +6,7 @@ use iconv_native::*;
 use strings::*;
 
 with_harness! {
-    fn test_decode_lossy_success() {
+    fn test_decode_success() {
         let testcases = [
             (TEST_UTF8, "utf-8"),
             (TEST_UTF8_BOM, "utf-8"),
@@ -25,12 +25,22 @@ with_harness! {
         ];
         let expected = "芙宁娜";
         for (idx, (input, encoding)) in testcases.into_iter().enumerate() {
-            let result = decode_lossy(input, encoding).unwrap();
+            let result = decode(input, encoding).unwrap();
             assert_eq!(result, expected, "{idx}: {input:?} {encoding}");
+
+            let result = decode_lossy(input, encoding).unwrap();
+            assert_eq!(result, expected, "{idx}_lossy: {input:?} {encoding}");
         }
     }
 
-    fn test_decode_lossy_invalid_encoding() {
+    fn test_decode_invalid_input() {
+        let result = decode(TEST_GB18030, "utf-8");
+        assert_eq!(result, Err(ConvertError::InvalidInput));
+    }
+
+    fn test_decode_invalid_encoding() {
+        let result = decode(TEST_GB18030, "invalid_encoding");
+        assert_eq!(result, Err(ConvertError::UnknownConversion));
         let result = decode_lossy(TEST_GB18030, "invalid_encoding");
         assert_eq!(result, Err(ConvertLossyError::UnknownConversion));
     }

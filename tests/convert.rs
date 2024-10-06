@@ -7,16 +7,22 @@ use strings::*;
 
 // TextEncoder does not support legacy encodings
 #[test]
-fn test_convert_lossy_success() {
+fn test_convert_success() {
     let input = TEST_GB18030;
+
+    let result = convert(input, "gb18030", "utf-8").unwrap();
+    let result_rev = convert(&result, "utf-8", "gb18030").unwrap();
+    assert_eq!(result, TEST_UTF8);
+    assert_eq!(result_rev, input, "rev");
+
     let result = convert_lossy(input, "gb18030", "utf-8").unwrap();
     let result_rev = convert_lossy(&result, "utf-8", "gb18030").unwrap();
-    assert_eq!(result, TEST_UTF8);
-    assert_eq!(result_rev, input);
+    assert_eq!(result, TEST_UTF8, "lossy");
+    assert_eq!(result_rev, input, "lossy rev");
 }
 
 with_harness! {
-    fn test_convert_lossy_roundtrip() {
+    fn test_convert_roundtrip() {
         let testcases = [
             (TEST_UTF8, &TEST_UTF16_LE[..], "utf-8", "utf-16le"),
             (TEST_UTF8_BOM, TEST_UTF16_LE_BOM, "utf-8", "utf-16le"),
@@ -30,8 +36,8 @@ with_harness! {
             (TEST_UTF16_DE_BOM, TEST_UTF32_DE_BOM, "utf-16", "utf-32"),
         ];
         for (idx, (input, expected, from_encoding, to_encoding)) in testcases.into_iter().enumerate() {
-            let result = convert_lossy(input, from_encoding, to_encoding).unwrap();
-            let result_rev = convert_lossy(&result, to_encoding, from_encoding).unwrap();
+            let result = convert(input, from_encoding, to_encoding).unwrap();
+            let result_rev = convert(&result, to_encoding, from_encoding).unwrap();
             assert_eq!(
                 result, expected,
                 "{idx}: {input:?} {from_encoding} => {expected:?} {to_encoding}"
@@ -40,10 +46,21 @@ with_harness! {
                 result_rev, input,
                 "{idx}: {input:?} {from_encoding} <= {expected:?} {to_encoding}"
             );
+
+            let result = convert_lossy(input, from_encoding, to_encoding).unwrap();
+            let result_rev = convert_lossy(&result, to_encoding, from_encoding).unwrap();
+            assert_eq!(
+                result, expected,
+                "{idx}_lossy: {input:?} {from_encoding} => {expected:?} {to_encoding}"
+            );
+            assert_eq!(
+                result_rev, input,
+                "{idx}_lossy: {input:?} {from_encoding} <= {expected:?} {to_encoding}"
+            );
         }
     }
 
-    fn test_convert_lossy_bom() {
+    fn test_convert_bom() {
         let testcases_be_16 = [
             (TEST_UTF8_BOM, &TEST_UTF16_DE_BOM_2[..], "utf-8", "utf-16"),
             (TEST_UTF8, TEST_UTF16_DE_BOM, "utf-8", "utf-16"),
@@ -66,29 +83,50 @@ with_harness! {
             for (idx, (input, expected, from_encoding, to_encoding)) in
                 testcases.into_iter().cloned().enumerate()
             {
-                let result = convert_lossy(input, from_encoding, to_encoding).unwrap();
+                let result = convert(input, from_encoding, to_encoding).unwrap();
                 assert_eq!(
                     result, expected,
                     "{casename}_{idx}: {input:?} {from_encoding} => {expected:?} {to_encoding}"
+                );
+
+                let result = convert_lossy(input, from_encoding, to_encoding).unwrap();
+                assert_eq!(
+                    result, expected,
+                    "{casename}_{idx}_lossy: {input:?} {from_encoding} => {expected:?} {to_encoding}"
                 );
             }
         }
     }
 
-    fn test_convert_lossy_same_encoding() {
+    fn test_convert_same_encoding() {
         let input = TEST_UTF8;
-        let result = convert_lossy(input, "utf-8", "utf-8").unwrap();
+
+        let result = convert(input, "utf-8", "utf-8").unwrap();
         assert_eq!(result, input);
+
+        let result = convert_lossy(input, "utf-8", "utf-8").unwrap();
+        assert_eq!(result, input, "lossy");
     }
 
-    fn test_convert_lossy_invalid_from_encoding() {
+    fn test_convert_invalid_from_encoding() {
+        let result = convert(TEST_GB18030, "invalid_encoding", "utf-8");
+        assert_eq!(result, Err(ConvertError::UnknownConversion));
+
         let result = convert_lossy(TEST_GB18030, "invalid_encoding", "utf-8");
-        assert_eq!(result, Err(ConvertLossyError::UnknownConversion));
+        assert_eq!(result, Err(ConvertLossyError::UnknownConversion), "lossy");
     }
 
-    fn test_convert_lossy_invalid_to_encoding() {
+    fn test_convert_invalid_to_encoding() {
+        let result = convert(TEST_GB18030, "gb18030", "invalid_encoding");
+        assert_eq!(result, Err(ConvertError::UnknownConversion));
+
         let result = convert_lossy(TEST_GB18030, "gb18030", "invalid_encoding");
         assert_eq!(result, Err(ConvertLossyError::UnknownConversion));
+    }
+
+    fn test_convert_invalid_input() {
+        let result = convert(b"b\xffaa", "utf-8", "utf-16");
+        assert_eq!(result.unwrap_err(), ConvertError::InvalidInput);
     }
 
     fn test_convert_lossy_invalid_input() {

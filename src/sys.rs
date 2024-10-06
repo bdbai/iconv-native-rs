@@ -26,4 +26,4 @@ cfg_if! {
     }
 }
 
-pub(crate) use inner::{convert_lossy, decode_lossy};
+pub(crate) use inner::{convert, convert_lossy, decode, decode_lossy};
