@@ -1,8 +1,12 @@
 # iconv-native-rs
 
+[![crates.io](https://img.shields.io/crates/v/iconv-native.svg)](https://crates.io/crates/iconv-native)
+[![Released API docs](https://docs.rs/iconv-native/badge.svg)](https://docs.rs/iconv-native)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![CI](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yml/badge.svg)](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yml)
+
 A lightweight text encoding converter based on platform native API or libiconv.
 
-// TODO: badges
 // TODO: doc
 
 ## Platforms

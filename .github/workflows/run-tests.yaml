@@ -17,14 +17,22 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
       - name: Setup Windows
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-          vcpkg install openssl:x64-windows
+          vcpkg install libiconv:x64-windows
           echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
           echo "VCPKGRS_DYNAMIC=1" >> $env:GITHUB_ENV
         if: matrix.os == 'windows-latest'
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
       - uses: actions/checkout@v4
       - name: Build
@@ -61,5 +69,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Install wasm32-unknown-unknown target
         run: rustup target add wasm32-unknown-unknown
+      - name: Run clippy
+        run: cargo clippy --verbose
       - name: Run tests
         run: wasm-pack test --node
