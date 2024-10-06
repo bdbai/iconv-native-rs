@@ -35,8 +35,11 @@ extern "C" {
         label: &str,
         options: js_sys::Object,
     ) -> Result<TextEncoderNonStandard, JsValue>;
-    # [wasm_bindgen (method , structural , js_class = "TextEncoder" , js_name = encode)]
-    pub fn encode_with_raw_input(this: &TextEncoderNonStandard, input: JsValue) -> Vec<u8>;
+    # [wasm_bindgen (method , structural, catch , js_class = "TextEncoder" , js_name = encode)]
+    pub fn encode_with_raw_input(
+        this: &TextEncoderNonStandard,
+        input: JsValue,
+    ) -> Result<Vec<u8>, JsValue>;
     #[wasm_bindgen(method, getter = "encoding")]
     pub fn get_encoding(this: &TextEncoderNonStandard) -> Option<String>;
 }

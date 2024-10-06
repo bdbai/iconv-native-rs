@@ -154,6 +154,8 @@ with_harness! {
     // `WideCharToMultiByte` supports a `WC_ERR_INVALID_CHARS` flag, but it only works for UTF-8 and
     // GB18030. Really don't know how to let it fail.
     #[cfg(not(all(windows, feature = "win32")))]
+    // A standard TextEncoder does not support legacy encodings.
+    #[cfg(not(all(target_arch = "wasm32", feature = "web-encoding")))]
     fn test_convert_out_of_range() {
         let result = convert("🤣b", "utf-8", "iso-8859-1");
         let result_lossy = convert_lossy("🤣b", "utf-8", "iso-8859-1").unwrap();
