@@ -1,6 +1,6 @@
 use alloc::{string::String, vec::Vec};
 
-use crate::{bom::ByteOrderMarkExt, ConvertLossyError};
+use crate::ConvertLossyError;
 
 pub mod ffi;
 
@@ -16,9 +16,6 @@ pub fn convert_lossy(
 
 pub fn decode_lossy(input: impl AsRef<[u8]>, encoding: &str) -> Result<String, ConvertLossyError> {
     let iconv = ffi::LossyIconv::new(encoding, "UTF-8")?;
-    let mut buf = iconv.convert(input.as_ref());
-    if buf.get_utf8_bom().is_present() {
-        buf.drain(0..3);
-    }
+    let buf = iconv.convert(input.as_ref());
     unsafe { Ok(String::from_utf8_unchecked(buf)) }
 }

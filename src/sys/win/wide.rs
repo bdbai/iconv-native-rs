@@ -1,4 +1,5 @@
 use core::ptr::null_mut;
+use core::str::FromStr;
 
 use alloc::{vec, vec::Vec};
 
@@ -8,79 +9,12 @@ use super::codepage::{
     encoding_to_codepage, CODEPAGE_UTF16, CODEPAGE_UTF16BE, CODEPAGE_UTF32, CODEPAGE_UTF32BE,
     CODEPAGE_UTF8,
 };
+use super::utf16::utf16_to_wide_lossy;
 use super::utf32::{utf32_to_wide_lossy, wide_to_utf32_lossy};
-use crate::bom::{ByteOrderMark, ByteOrderMarkExt};
+use crate::utf::{UtfEncoding, UtfType};
 use crate::{encoding::is_encoding_byte_order_ambiguous, ConvertLossyError};
 
-fn decode_wide_lossy(
-    input: impl AsRef<[u8]>,
-    codepage: u32,
-    preserve_bom: &mut bool,
-) -> Result<Vec<u16>, ConvertLossyError> {
-    let mut input = input.as_ref();
-    if codepage == CODEPAGE_UTF8 {
-        if input.get_utf8_bom().is_present() {
-            *preserve_bom &= true;
-            input = &input[3..];
-        } else {
-            *preserve_bom = false;
-        }
-    } else if let CODEPAGE_UTF16 | CODEPAGE_UTF16BE = codepage {
-        let mut is_le = codepage == CODEPAGE_UTF16;
-        match input.get_utf16_bom() {
-            ByteOrderMark::Le => {
-                is_le = true;
-                *preserve_bom &= true;
-                input = &input[2..];
-            }
-            ByteOrderMark::Be => {
-                is_le = false;
-                *preserve_bom &= true;
-                input = &input[2..];
-            }
-            ByteOrderMark::NotPresent => {
-                *preserve_bom = false;
-            }
-        }
-
-        return Ok(if is_le {
-            input
-                .chunks_exact(2)
-                .map(|x| u16::from_le_bytes([x[0], x[1]]))
-                .collect()
-        } else {
-            input
-                .chunks_exact(2)
-                .map(|x| u16::from_be_bytes([x[0], x[1]]))
-                .collect()
-        });
-    } else if let CODEPAGE_UTF32 | CODEPAGE_UTF32BE = codepage {
-        let mut is_le = codepage == CODEPAGE_UTF32;
-        match input.get_utf32_bom() {
-            ByteOrderMark::Le => {
-                is_le = true;
-                *preserve_bom &= true;
-                input = &input[4..];
-            }
-            ByteOrderMark::Be => {
-                is_le = false;
-                *preserve_bom &= true;
-                input = &input[4..];
-            }
-            ByteOrderMark::NotPresent => {
-                *preserve_bom = false;
-            }
-        }
-
-        return Ok(if is_le {
-            utf32_to_wide_lossy(input, u32::from_le_bytes)
-        } else {
-            utf32_to_wide_lossy(input, u32::from_be_bytes)
-        });
-    } else {
-        *preserve_bom = false;
-    }
-
+fn decode_wide_lossy(input: &[u8], codepage: u32) -> Result<Vec<u16>, ConvertLossyError> {
     if input.is_empty() {
         // If the input is empty, calling MultiByteToWideChar would return an error.
         return Ok(Vec::new());
@@ -196,21 +130,34 @@ pub fn convert_lossy(
     input: impl AsRef<[u8]>,
     from_encoding: &str,
     to_encoding: &str,
-    ignore_bom: bool,
 ) -> Result<Vec<u8>, ConvertLossyError> {
     let from_codepage =
         encoding_to_codepage(from_encoding).ok_or(ConvertLossyError::UnknownConversion)?;
     let to_codepage =
         encoding_to_codepage(to_encoding).ok_or(ConvertLossyError::UnknownConversion)?;
+    let mut input = input.as_ref();
     if from_codepage == to_codepage {
-        let mut input = input.as_ref();
-        if ignore_bom && from_codepage == CODEPAGE_UTF8 && input.get_utf8_bom().is_present() {
-            input = &input[3..];
-        }
         return Ok(input.as_ref().to_vec());
     }
-    let mut preserve_bom = !is_encoding_byte_order_ambiguous(from_encoding);
-    let wide = decode_wide_lossy(input, from_codepage, &mut preserve_bom)?;
-    let add_bom = preserve_bom || is_encoding_byte_order_ambiguous(to_encoding);
-    encode_wide(wide, to_codepage, add_bom && !ignore_bom)
+    let wide = if let Some(from_utf) = UtfEncoding::from_str(from_encoding)
+        .ok()
+        .filter(|u| u.is_utf16() || u.is_utf32())
+    {
+        let byte_order = from_utf.consume_input_bom(&mut input);
+        let is_le = byte_order.is_le(true);
+        match (from_utf.r#type(), is_le) {
+            (UtfType::Utf16, true) => utf16_to_wide_lossy(input, u16::from_le_bytes),
+            (UtfType::Utf16, false) => utf16_to_wide_lossy(input, u16::from_be_bytes),
+            (UtfType::Utf32, true) => utf32_to_wide_lossy(input, u32::from_le_bytes),
+            (UtfType::Utf32, false) => utf32_to_wide_lossy(input, u32::from_be_bytes),
+            _ => unreachable!(),
+        }
+    } else {
+        decode_wide_lossy(input, from_codepage)?
+    };
+    encode_wide(
+        wide,
+        to_codepage,
+        is_encoding_byte_order_ambiguous(to_encoding),
+    )
 }

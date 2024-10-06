@@ -10,6 +10,7 @@ pub(crate) fn trim_encoding_prefix<'i>(ascii_input: &'i str, prefix: &str) -> Op
     )
 }
 
+#[allow(dead_code)]
 pub(crate) fn match_encoding_parts<'i>(input: &'i str, parts: &[&str]) -> Option<&'i str> {
     let mut input = input;
     for part in parts {
@@ -22,10 +23,12 @@ pub(crate) fn match_encoding_parts<'i>(input: &'i str, parts: &[&str]) -> Option
     Some(input)
 }
 
+#[allow(dead_code)]
 pub(crate) fn match_encoding_parts_exact(input: &str, parts: &[&str]) -> bool {
     match_encoding_parts(input, parts) == Some("")
 }
 
+#[allow(dead_code)]
 pub(crate) fn is_encoding_byte_order_ambiguous(encoding: &str) -> bool {
     let Some(rem) = trim_encoding_prefix(encoding, "utf") else {
         return false;

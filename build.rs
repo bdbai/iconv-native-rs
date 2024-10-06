@@ -14,10 +14,8 @@ fn main() {
     let is_using_libc_iconv =
         var("CARGO_FEATURE_LIBC_ICONV").is_ok() && ((is_gnu && is_linux) || is_hurd || is_apple);
     let is_using_fallback = !(is_using_libc_iconv || is_using_win32 || is_using_web_encoding);
-    if feature_libiconv || (feature_fallback_libiconv && is_using_fallback) {
-        if is_windows {
-            #[cfg(target_env = "msvc")]
-            vcpkg::find_package("libiconv").unwrap();
-        }
+    if is_windows && (feature_libiconv || (feature_fallback_libiconv && is_using_fallback)) {
+        #[cfg(target_env = "msvc")]
+        vcpkg::find_package("libiconv").unwrap();
     }
 }

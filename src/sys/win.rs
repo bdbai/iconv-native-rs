@@ -1,10 +1,13 @@
+use core::str::FromStr;
+
 use alloc::{string::String, vec::Vec};
 
 mod codepage;
+mod utf16;
 mod utf32;
 mod wide;
 
-use crate::wide::{try_decode_utf16_lossy, try_decode_utf32_lossy};
+use crate::utf::{decode_utf_lossy, UtfEncoding};
 use crate::ConvertLossyError;
 
 pub fn convert_lossy(
@@ -12,15 +15,14 @@ pub fn convert_lossy(
     from_encoding: &str,
     to_encoding: &str,
 ) -> Result<Vec<u8>, ConvertLossyError> {
-    wide::convert_lossy(input, from_encoding, to_encoding, false)
+    wide::convert_lossy(input, from_encoding, to_encoding)
 }
 
-pub fn decode_lossy(input: impl AsRef<[u8]>, encoding: &str) -> Result<String, ConvertLossyError> {
-    if let Some(str) = try_decode_utf16_lossy(input.as_ref(), encoding)
-        .or_else(|| try_decode_utf32_lossy(input.as_ref(), encoding, false))
-    {
-        return Ok(str);
-    }
-    let buf = wide::convert_lossy(input, encoding, "utf-8", true)?;
+pub fn decode_lossy(input: &[u8], encoding: &str) -> Result<String, ConvertLossyError> {
+    if let Ok(utf) = UtfEncoding::from_str(encoding) {
+        return Ok(decode_utf_lossy(input, utf));
+    };
+
+    let buf = wide::convert_lossy(input, encoding, "utf-8")?;
     unsafe { Ok(String::from_utf8_unchecked(buf)) }
 }

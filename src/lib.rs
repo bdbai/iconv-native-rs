@@ -9,18 +9,12 @@
 extern crate alloc;
 
 mod bom;
-#[cfg(any(
-    all(windows, feature = "win32"),
-    all(target_arch = "wasm32", feature = "web-encoding")
-))]
 mod encoding;
 mod error;
 mod sys;
-#[cfg(any(
-    all(windows, feature = "win32"),
-    all(target_arch = "wasm32", feature = "web-encoding")
-))]
-mod wide;
+mod utf;
+
+use core::str::FromStr;
 
 pub use error::ConvertLossyError;
 
@@ -35,5 +29,9 @@ pub fn convert_lossy(
 }
 
 pub fn decode_lossy(input: impl AsRef<[u8]>, encoding: &str) -> Result<String, ConvertLossyError> {
+    let mut input = input.as_ref();
+    if let Ok(utf) = utf::UtfEncoding::from_str(encoding) {
+        utf.strip_bom(&mut input);
+    };
     sys::decode_lossy(input, encoding)
 }

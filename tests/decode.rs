@@ -1,6 +1,3 @@
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_test::*;
-
 #[macro_use]
 mod harness;
 mod strings;
