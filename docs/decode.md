@@ -23,8 +23,8 @@ let output_bom = decode(b"\xff\xfe\x66\x8e\x66\x8e\xb8\x70\x39\x5f", "utf-16");
 let output_invalid_encoding = decode(b"\x11\x45", "invalid-encoding");
 let output_invalid_input = decode(b"\xff 141919", "utf-8");
 
-assert_eq!(output.unwrap(), "芙宁娜");
-assert_eq!(output_bom.unwrap(), "蹦蹦炸弹");
+assert_eq!(output?, "芙宁娜");
+assert_eq!(output_bom?, "蹦蹦炸弹");
 assert_eq!(
     output_invalid_encoding.unwrap_err(),
     ConvertError::UnknownConversion
@@ -33,4 +33,5 @@ assert_eq!(
     output_invalid_input.unwrap_err(),
     ConvertError::InvalidInput
 );
+# Ok::<(), iconv_native::ConvertError>(())
 ```

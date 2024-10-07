@@ -24,11 +24,12 @@ let output_bom = decode_lossy(b"\xff\xfe\x66\x8e\x66\x8e\xb8\x70\x39\x5f", "utf-
 let output_invalid_encoding = decode_lossy(b"\x11\x45", "invalid-encoding");
 let output_invalid_input = decode_lossy(b"\xff 141919", "utf-8");
 
-assert_eq!(output.unwrap(), "芙宁娜");
-assert_eq!(output_bom.unwrap(), "蹦蹦炸弹");
+assert_eq!(output?, "芙宁娜");
+assert_eq!(output_bom?, "蹦蹦炸弹");
 assert_eq!(
     output_invalid_encoding.unwrap_err(),
     ConvertLossyError::UnknownConversion
 );
-assert!(output_invalid_input.unwrap().contains("141919"));
+assert!(output_invalid_input?.contains("141919"));
+# Ok::<(), iconv_native::ConvertLossyError>(())
 ```

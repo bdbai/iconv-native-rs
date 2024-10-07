@@ -61,33 +61,29 @@ const EXPECTED_BOM_INOUT_LE: &[u8] =
     b"\0\0\xfe\xff\0\0\x8e\x66\0\0\x8e\x66\0\0\x70\xb8\0\0\x5f\x39";
 const EXPECTED_NOT_A_BOM: &[u8] = b"\0\0\xfe\xff\0\0\x82\x99\0\0\x5b\x81\0\0\x5a\x1c";
 
-assert_eq!(output_no_bom.unwrap(), EXPECTED_NO_BOM, "no bom");
+assert_eq!(output_no_bom?, EXPECTED_NO_BOM, "no bom");
 assert!(
-    output_bom_added.as_ref().unwrap() == EXPECTED_BOM_ADDED_BE
-        || output_bom_added.as_ref().unwrap() == EXPECTED_BOM_ADDED_LE,
+    matches!(
+        &*output_bom_added?,
+        EXPECTED_BOM_ADDED_BE | EXPECTED_BOM_ADDED_LE
+    ),
     "bom added"
 );
-assert_eq!(
-    output_bom_removed.unwrap(),
-    EXPECTED_BOM_REMOVED,
-    "bom removed"
-);
+assert_eq!(output_bom_removed?, EXPECTED_BOM_REMOVED, "bom removed");
 assert!(
-    output_bom_inout.as_ref().unwrap() == EXPECTED_BOM_INOUT_BE
-        || output_bom_inout.as_ref().unwrap() == EXPECTED_BOM_INOUT_LE,
+    matches!(
+        &*output_bom_inout?,
+        EXPECTED_BOM_INOUT_BE | EXPECTED_BOM_INOUT_LE
+    ),
     "bom in-out"
 );
-assert_eq!(output_not_a_bom.unwrap(), EXPECTED_NOT_A_BOM, "not a bom");
+assert_eq!(output_not_a_bom?, EXPECTED_NOT_A_BOM, "not a bom");
 assert_eq!(
     output_invalid_encoding.unwrap_err(),
     ConvertLossyError::UnknownConversion
 );
-assert!(output_invalid_input
-    .unwrap()
-    .iter()
-    .rev()
-    .take(6)
-    .eq(b"919141"));
+assert!(output_invalid_input?.iter().rev().take(6).eq(b"919141"));
+# Ok::<(), iconv_native::ConvertLossyError>(())
 ```
 
 [libiconv]: https://www.gnu.org/software/libiconv/

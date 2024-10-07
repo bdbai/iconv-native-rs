@@ -5,7 +5,7 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![CI](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yaml/badge.svg)](https://github.com/bdbai/iconv-native-rs/actions/workflows/run-tests.yaml)
 
-A lightweight text encoding converter based on platform native API or libiconv.
+A lightweight text encoding converter based on platform native APIs or [libiconv].
 
 ## Platforms
 

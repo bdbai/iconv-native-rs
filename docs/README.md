@@ -1,6 +1,28 @@
-# iconv-native
+A lightweight text encoding converter based on platform native APIs or [libiconv].
 
-A lightweight text encoding converter based on platform native API or libiconv.
+## Usage
+
+Use [`convert`] or [`convert_lossy`] to convert text between encodings.
+
+```rust
+use iconv_native::convert;
+
+let output = convert(b"\x82\xb3\x83\x86\x82\xe8", "Shift_JIS", "UTF-16LE")?;
+assert_eq!(output, b"\x55\x30\xe6\x30\x8a\x30");
+# Ok::<(), iconv_native::ConvertError>(())
+```
+
+If target encoding is UTF-8 and the output is going to be treated as a Rust-native [`String`], use [`decode`] or [`decode_lossy`] instead.
+
+```rust
+use iconv_native::decode;
+
+let output = decode(b"\xa4\xaa\xa4\xe4\xa4\xb9\xa4\xdf", "GB18030")?;
+assert_eq!(output, "おやすみ");
+# Ok::<(), iconv_native::ConvertError>(())
+```
+
+There are some minor differences between these functions specifically for BOM handling. See the documentation of each function for more details.
 
 ## Platforms
 
