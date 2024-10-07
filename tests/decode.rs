@@ -33,6 +33,18 @@ with_harness! {
         }
     }
 
+    fn test_decode_empty_input() {
+        let result = decode("", "utf-16le");
+        let result_lossy = decode_lossy("", "utf-16le");
+        assert_eq!(result, Ok("".into()), "utf-16le");
+        assert_eq!(result_lossy, Ok("".into()), "utf-16le lossy");
+
+        let result = decode("", "gb18030");
+        let result_lossy = decode_lossy("", "gb18030");
+        assert_eq!(result, Ok("".into()), "gb18030");
+        assert_eq!(result_lossy, Ok("".into()), "gb18030 lossy");
+    }
+
     fn test_decode_invalid_input() {
         let result = decode(TEST_GB18030, "utf-8");
         assert_eq!(result, Err(ConvertError::InvalidInput));

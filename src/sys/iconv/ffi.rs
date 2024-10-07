@@ -86,7 +86,8 @@ impl IconvHandle {
     }
 
     fn convert(&mut self, mut input: &[u8]) -> Result<Vec<u8>, (Vec<u8>, ConvertError)> {
-        let mut output: Vec<u8> = Vec::with_capacity(input.len());
+        // Ensure the initial capacity is not zero to avoid endless loop.
+        let mut output: Vec<u8> = Vec::with_capacity(input.len() + 4);
         unsafe {
             loop {
                 let mut inlen = input.len();

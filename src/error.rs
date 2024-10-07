@@ -1,13 +1,25 @@
 use core::fmt;
 
+#[cfg(doc)]
+use crate::{convert, convert_lossy, decode, decode_lossy};
+
+/// Error representation for [`decode`] and [`convert`].
 #[derive(Debug, PartialEq, Eq)]
 pub enum ConvertError {
+    /// The encodings provided or the specific conversion pair is not supported
+    /// by the implementation.
     UnknownConversion,
+    /// The input data contains invalid data for the given encoding, or the
+    /// input data contains a character that is not representable in the target
+    /// encoding.
     InvalidInput,
 }
 
+/// Error representation for [`decode_lossy`] and [`convert_lossy`].
 #[derive(Debug, PartialEq, Eq)]
 pub enum ConvertLossyError {
+    /// The encodings provided or the specific conversion pair is not supported
+    /// by the implementation.
     UnknownConversion,
 }
 

@@ -110,6 +110,18 @@ with_harness! {
         assert_eq!(result, input, "lossy");
     }
 
+    fn test_convert_empty_input() {
+        let result = convert("", "utf-8", "utf-16le");
+        let result_lossy = convert_lossy("", "utf-8", "utf-16le");
+        assert_eq!(result, Ok(vec![]), "utf-8");
+        assert_eq!(result_lossy, Ok(vec![]), "utf-8 lossy");
+
+        let result = convert("", "gb18030", "utf-8");
+        let result_lossy = convert_lossy("", "gb18030", "utf-8");
+        assert_eq!(result, Ok(vec![]), "gb18030");
+        assert_eq!(result_lossy, Ok(vec![]), "gb18030 lossy");
+    }
+
     fn test_convert_invalid_from_encoding() {
         let result = convert(TEST_GB18030, "invalid_encoding", "utf-8");
         assert_eq!(result, Err(ConvertError::UnknownConversion));

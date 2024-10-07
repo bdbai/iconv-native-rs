@@ -9,7 +9,7 @@ fn decode_utf16_lossy_inner(input: &[u8], mut bytes_to_num: impl FnMut([u8; 2]) 
     let mut res = decode_utf16_lossy(
         input_iter
             .by_ref()
-            .map(|x| bytes_to_num(unsafe { x.try_into().unwrap_unchecked() })),
+            .map(|x| bytes_to_num(x.try_into().unwrap())),
     )
     .collect::<String>();
     if !input_iter.remainder().is_empty() {
@@ -23,7 +23,7 @@ fn decode_utf32_lossy_inner(input: &[u8], mut bytes_to_num: impl FnMut([u8; 4]) 
     let mut res = decode_utf32_lossy(
         input_iter
             .by_ref()
-            .map(|x| bytes_to_num(unsafe { x.try_into().unwrap_unchecked() })),
+            .map(|x| bytes_to_num(x.try_into().unwrap())),
     )
     .collect::<String>();
     if !input_iter.remainder().is_empty() {

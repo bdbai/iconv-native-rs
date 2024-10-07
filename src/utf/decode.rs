@@ -14,10 +14,9 @@ fn decode_utf16_inner(
     if !input_iter.remainder().is_empty() {
         return Err(ConvertError::InvalidInput);
     }
-    let res =
-        decode_utf16(input_iter.map(|x| bytes_to_num(unsafe { x.try_into().unwrap_unchecked() })))
-            .collect::<Result<String, _>>()
-            .map_err(|_| ConvertError::InvalidInput)?;
+    let res = decode_utf16(input_iter.map(|x| bytes_to_num(x.try_into().unwrap())))
+        .collect::<Result<String, _>>()
+        .map_err(|_| ConvertError::InvalidInput)?;
     Ok(res)
 }
 
@@ -29,10 +28,9 @@ fn decode_utf32_inner(
     if !input_iter.remainder().is_empty() {
         return Err(ConvertError::InvalidInput);
     }
-    let res =
-        decode_utf32(input_iter.map(|x| bytes_to_num(unsafe { x.try_into().unwrap_unchecked() })))
-            .collect::<Result<String, _>>()
-            .map_err(|_| ConvertError::InvalidInput)?;
+    let res = decode_utf32(input_iter.map(|x| bytes_to_num(x.try_into().unwrap())))
+        .collect::<Result<String, _>>()
+        .map_err(|_| ConvertError::InvalidInput)?;
     Ok(res)
 }
 

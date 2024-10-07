@@ -5,6 +5,7 @@ version = "0.1.0-alpha.1"
 authors = ["bdbai <bdbaiapp@163.com>"]
 categories = ["text-processing", "encoding", "internationalization"]
 keywords = ["encoding", "unicode", "wasm", "iconv"]
+repository = "https://github.com/bdbai/iconv-native-rs"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 rust-version = "1.80"

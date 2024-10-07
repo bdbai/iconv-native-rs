@@ -14,7 +14,7 @@ pub(super) fn utf32_to_wide_lossy(
     let iter = decode_utf32_lossy(
         input_iter
             .by_ref()
-            .map(|x| bytes_to_num(unsafe { x.try_into().unwrap_unchecked() })),
+            .map(|x| bytes_to_num(x.try_into().unwrap())),
     );
     let mut res = U16String::from_iter(iter).into_vec();
     if !input_iter.remainder().is_empty() {
@@ -31,10 +31,9 @@ pub(super) fn utf32_to_wide(
     if !input_iter.remainder().is_empty() {
         return Err(ConvertError::InvalidInput);
     }
-    let res =
-        decode_utf32(input_iter.map(|x| bytes_to_num(unsafe { x.try_into().unwrap_unchecked() })))
-            .collect::<Result<U16String, _>>()
-            .map_err(|_| ConvertError::InvalidInput)?;
+    let res = decode_utf32(input_iter.map(|x| bytes_to_num(x.try_into().unwrap())))
+        .collect::<Result<U16String, _>>()
+        .map_err(|_| ConvertError::InvalidInput)?;
     Ok(res.into_vec())
 }
 
@@ -59,7 +58,7 @@ pub(super) fn wide_to_utf32(
     res.extend(
         encode_utf32(decode_utf16(input.iter().copied()).map(|c|
             // Safety: `input` is immutable, plus we just went through a decoding over it,
-            // and decode_utf16 should be pure.
+            // and `decode_utf16` should be pure.
             unsafe { c.unwrap_unchecked() }))
         .flat_map(bytes_to_num),
     );
