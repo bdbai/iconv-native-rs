@@ -9,6 +9,7 @@ repository = "https://github.com/bdbai/iconv-native-rs"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 rust-version = "1.80"
+exclude = [".github"]
 
 [features]
 default = ["win32", "web-encoding", "libc-iconv", "fallback-libiconv"]
