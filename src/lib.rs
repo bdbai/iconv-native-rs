@@ -1,10 +1,7 @@
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![cfg_attr(
-    any(
-        all(windows, feature = "win32"),
-        all(target_arch = "wasm32", feature = "web-encoding"),
-    ),
+    any(windows, all(target_arch = "wasm32", feature = "web-encoding"),),
     no_std
 )]
 #![doc = include_str!("../docs/README.md")]

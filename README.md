@@ -13,7 +13,7 @@ A lightweight text encoding converter based on platform native APIs or [libiconv
 
 By default this crate uses [`MultiByteToWideChar`](https://learn.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar) and [`WideCharToMultiByte`](https://learn.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte) functions, controlled by feature `win32`. Since UTF-32 is not supported by these functions, [`widestring`](https://docs.rs/widestring) crate is used to convert UTF-32 to UTF-16 and vice versa.
 
-You may also disable disable default features and enable `libiconv` to use the [libiconv] library instead.
+You may also disable default features and enable `libiconv` to use the [libiconv] library instead.
 
 ### Linux
 
