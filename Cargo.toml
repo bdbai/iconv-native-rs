@@ -1,7 +1,7 @@
 [package]
 name = "iconv-native"
 description = "A lightweight text encoding converter based on platform native API or libiconv"
-version = "0.1.0-alpha.1"
+version = "0.1.0"
 authors = ["bdbai <bdbaiapp@163.com>"]
 categories = ["text-processing", "encoding", "internationalization"]
 keywords = ["encoding", "unicode", "wasm", "iconv"]
@@ -9,7 +9,7 @@ repository = "https://github.com/bdbai/iconv-native-rs"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 rust-version = "1.80"
-exclude = [".github"]
+exclude = [".github", ".vscode", "rustfmt.toml"]
 
 [features]
 default = ["win32", "web-encoding", "libc-iconv", "fallback-libiconv"]
