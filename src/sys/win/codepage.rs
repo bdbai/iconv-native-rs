@@ -94,15 +94,12 @@ pub(super) fn encoding_to_codepage(encoding: &str) -> Option<u32> {
                 "15" => return Some(28605),
                 _ => {}
             }
-            if let Some(encoding) = trim_encoding_prefix(encoding, "8") {
-                return Some(if encoding == "i" || encoding == "I" {
-                    38598
-                } else {
-                    28598
-                });
+            let encoding = trim_encoding_prefix(encoding, "8")?;
+            return Some(if encoding == "i" || encoding == "I" {
+                38598
             } else {
-                return None;
-            }
+                28598
+            });
         }
         return None;
     }
@@ -191,9 +188,8 @@ pub(super) fn encoding_to_codepage(encoding: &str) -> Option<u32> {
 
 pub(super) fn is_no_flag_codepage(codepage: u32) -> bool {
     const NO_FLAG_CODEPAGES: [u32; 8] = [50220, 50221, 50222, 50225, 50227, 50229, 65000, 42];
-    const NO_FLAG_RANGES: [RangeInclusive<u32>; 1] = [57002..=57011];
-    NO_FLAG_CODEPAGES.contains(&codepage)
-        || NO_FLAG_RANGES.iter().any(|range| range.contains(&codepage))
+    const NO_FLAG_RANGE: RangeInclusive<u32> = 57002..=57011;
+    NO_FLAG_CODEPAGES.contains(&codepage) || NO_FLAG_RANGE.contains(&codepage)
 }
 
 #[cfg(test)]
