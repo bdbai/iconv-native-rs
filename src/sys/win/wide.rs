@@ -183,9 +183,7 @@ pub fn convert(
     encode_wide(
         &wide,
         to_codepage,
-        UtfEncoding::from_str(to_encoding)
-            .as_ref()
-            .map_or(false, UtfEncoding::is_ambiguous),
+        UtfEncoding::from_str(to_encoding).is_ok_and(|utf| utf.is_ambiguous()),
         false,
     )
 }
@@ -224,9 +222,7 @@ pub fn convert_lossy(
     encode_wide(
         &wide,
         to_codepage,
-        UtfEncoding::from_str(to_encoding)
-            .as_ref()
-            .map_or(false, UtfEncoding::is_ambiguous),
+        UtfEncoding::from_str(to_encoding).is_ok_and(|utf| utf.is_ambiguous()),
         true,
     )
     .map_err(|e| match e {

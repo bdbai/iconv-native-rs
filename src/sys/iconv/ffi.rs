@@ -87,7 +87,7 @@ impl IconvHandle {
 
     fn convert(&mut self, mut input: &[u8]) -> Result<Vec<u8>, (Vec<u8>, ConvertError)> {
         // Ensure the initial capacity is not zero to avoid endless loop.
-        let mut output: Vec<u8> = Vec::with_capacity(input.len() + 4);
+        let mut output: Vec<u8> = Vec::with_capacity(input.len().saturating_add(4));
         unsafe {
             loop {
                 let mut inlen = input.len();
@@ -112,7 +112,12 @@ impl IconvHandle {
                 input = &input[input.len() - inlen..];
                 if res as isize == -1 && is_last_error_e2big {
                     // E2BIG
-                    output.reserve(output.capacity() * 2 - output.len());
+                    output.reserve(
+                        output
+                            .capacity()
+                            .saturating_mul(2)
+                            .saturating_sub(output.len()),
+                    );
                     continue;
                 }
                 // glibc: even when //IGNORE is used, iconv may still return EINVAL.

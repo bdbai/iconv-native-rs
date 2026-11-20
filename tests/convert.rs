@@ -62,6 +62,99 @@ with_harness! {
         }
     }
 
+    fn test_convert_bom_resume() {
+        // Regression test: the output (256 bytes) is much larger than the
+        // initial output buffer (input.len() + 4), forcing the conversion to
+        // resume after E2BIG. The BOM is stripped upfront and the source is
+        // rewritten to an explicit LE/BE encoding, so the byte order stays
+        // correct across resumed calls on all platforms.
+        let mut input = b"\xff\xfe".to_vec();
+        let mut expected = Vec::new();
+        for _ in 0..64 {
+            input.extend_from_slice(b"\x39\x5f");
+            expected.extend_from_slice(b"\x39\x5f\0\0");
+        }
+        let result = convert(&input, "utf-16", "utf-32le").unwrap();
+        assert_eq!(result, expected);
+        let result_lossy = convert_lossy(&input, "utf-16", "utf-32le").unwrap();
+        assert_eq!(result_lossy, expected, "lossy");
+    }
+
+    // The `unicode` alias maps to ambiguous UTF-16 and needs the same BOM
+    // handling. Only exercised on iconv backends; win32/wasm decode it
+    // through a different path.
+    #[cfg(not(all(windows, feature = "win32")))]
+    #[cfg(not(all(target_arch = "wasm32", feature = "web-encoding")))]
+    fn test_convert_bom_unicode_alias() {
+        let mut input_le = b"\xff\xfe".to_vec();
+        let mut input_be = b"\xfe\xff".to_vec();
+        let mut expected = Vec::new();
+        for _ in 0..16 {
+            input_le.extend_from_slice(b"\x39\x5f");
+            input_be.extend_from_slice(b"\x5f\x39");
+            expected.extend_from_slice(b"\x39\x5f\0\0");
+        }
+        for from in ["unicode", "UNICODE"] {
+            let result = convert(&input_le, from, "utf-32le").unwrap();
+            assert_eq!(result, expected, "le {from}");
+            let result_lossy = convert_lossy(&input_le, from, "utf-32le").unwrap();
+            assert_eq!(result_lossy, expected, "le lossy {from}");
+            let result = convert(&input_be, from, "utf-32le").unwrap();
+            assert_eq!(result, expected, "be {from}");
+            let result_lossy = convert_lossy(&input_be, from, "utf-32le").unwrap();
+            assert_eq!(result_lossy, expected, "be lossy {from}");
+        }
+    }
+
+    // UTF-32 with BOM over a long input exercises the same upfront BOM
+    // handling for the 4-byte BOM variants.
+    #[cfg(not(all(windows, feature = "win32")))]
+    #[cfg(not(all(target_arch = "wasm32", feature = "web-encoding")))]
+    fn test_convert_bom_utf32_long() {
+        let mut input_le = b"\xff\xfe\0\0".to_vec();
+        let mut input_be = b"\0\0\xfe\xff".to_vec();
+        let mut expected_utf8 = Vec::new();
+        let mut expected_utf16le = Vec::new();
+        for _ in 0..64 {
+            input_le.extend_from_slice(b"\x39\x5f\0\0");
+            input_be.extend_from_slice(b"\0\0\x5f\x39");
+            expected_utf8.extend_from_slice(b"\xe5\xbc\xb9");
+            expected_utf16le.extend_from_slice(b"\x39\x5f");
+        }
+        for (input, name) in [(&input_le[..], "le"), (&input_be[..], "be")] {
+            let result = convert(input, "utf-32", "utf-8").unwrap();
+            assert_eq!(result, expected_utf8, "{name}");
+            let result_lossy = convert_lossy(input, "utf-32", "utf-8").unwrap();
+            assert_eq!(result_lossy, expected_utf8, "{name} lossy");
+            let result = convert(input, "utf-32", "utf-16le").unwrap();
+            assert_eq!(result, expected_utf16le, "{name} utf16");
+        }
+    }
+
+    // UTF-8-MAC decomposes Hangul syllables, so the output can exceed
+    // `input.len() * 4 + 32` and still hit E2BIG. The upfront BOM handling
+    // keeps the byte order correct. Apple system iconv only.
+    #[cfg(all(target_vendor = "apple", feature = "libc-iconv"))]
+    fn test_convert_utf16_to_utf8mac_expansion() {
+        let mut input = b"\xff\xfe".to_vec();
+        for _ in 0..41 {
+            input.extend_from_slice(b"\x01\xac");
+        }
+        let mut expected = Vec::new();
+        for _ in 0..41 {
+            expected.extend_from_slice(b"\xe1\x84\x80\xe1\x85\xa1\xe1\x86\xa8");
+        }
+        match convert(&input, "utf-16", "utf-8-mac") {
+            Ok(result) => assert_eq!(result, expected),
+            Err(ConvertError::UnknownConversion) => return,
+            Err(e) => panic!("unexpected error: {e:?}"),
+        }
+        match convert_lossy(&input, "utf-16", "utf-8-mac") {
+            Ok(result) => assert_eq!(result, expected, "lossy"),
+            Err(ConvertLossyError::UnknownConversion) => {}
+        }
+    }
+
     fn test_convert_bom() {
         let testcases_be_16 = [
             (TEST_UTF8_BOM, &TEST_UTF16_DE_BOM_2[..], "utf-8", "utf-16"),
