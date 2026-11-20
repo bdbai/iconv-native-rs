@@ -45,6 +45,36 @@ with_harness! {
         assert_eq!(result_lossy, Ok("".into()), "gb18030 lossy");
     }
 
+    fn test_decode_bom_resume() {
+        // Long ambiguous UTF-16 input with BOM; forces E2BIG resume with the
+        // small initial buffer. BOM is handled upfront so the tail decodes
+        // with the right byte order.
+        let mut input = b"\xff\xfe".to_vec();
+        for _ in 0..64 {
+            input.extend_from_slice(b"\x39\x5f");
+        }
+        let expected = "\u{5f39}".repeat(64);
+        let result = decode(&input, "utf-16").unwrap();
+        assert_eq!(result, expected);
+        let result_lossy = decode_lossy(&input, "utf-16").unwrap();
+        assert_eq!(result_lossy, expected, "lossy");
+    }
+
+    // See test_convert_bom_unicode_alias: iconv backends only.
+    #[cfg(not(all(windows, feature = "win32")))]
+    #[cfg(not(all(target_arch = "wasm32", feature = "web-encoding")))]
+    fn test_decode_bom_unicode_alias() {
+        let mut input = b"\xff\xfe".to_vec();
+        for _ in 0..16 {
+            input.extend_from_slice(b"\x39\x5f");
+        }
+        let expected = "\u{5f39}".repeat(16);
+        let result = decode(&input, "unicode").unwrap();
+        assert_eq!(result, expected);
+        let result_lossy = decode_lossy(&input, "unicode").unwrap();
+        assert_eq!(result_lossy, expected, "lossy");
+    }
+
     fn test_decode_invalid_input() {
         let result = decode(TEST_GB18030, "utf-8");
         assert_eq!(result, Err(ConvertError::InvalidInput));

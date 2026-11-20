@@ -32,6 +32,13 @@ pub(crate) struct UtfEncoding {
 
 impl UtfEncoding {
     fn parse(s: &str) -> Option<Self> {
+        // Apple libiconv maps the bare `unicode` alias to ambiguous UTF-16.
+        if s.eq_ignore_ascii_case("unicode") {
+            return Some(Self {
+                r#type: UtfType::Utf16,
+                byte_order: ByteOrderMark::NotPresent,
+            });
+        }
         let encoding = trim_encoding_prefix(s, "utf")?;
         let (r#type, byte_order) = if encoding.starts_with("8") {
             (UtfType::Utf8, trim_encoding_prefix(encoding, "8"))
@@ -43,8 +50,8 @@ impl UtfEncoding {
             return None;
         };
         let byte_order = match byte_order {
-            Some("le" | "LE") => ByteOrderMark::Le,
-            Some("be" | "BE") => ByteOrderMark::Be,
+            Some(s) if s.eq_ignore_ascii_case("le") => ByteOrderMark::Le,
+            Some(s) if s.eq_ignore_ascii_case("be") => ByteOrderMark::Be,
             Some("") => ByteOrderMark::NotPresent,
             _ => return None,
         };
@@ -148,8 +155,12 @@ mod tests {
             ("utf-32", UtfType::Utf32, ByteOrderMark::NotPresent),
             ("utf-16le", UtfType::Utf16, ByteOrderMark::Le),
             ("utf-16be", UtfType::Utf16, ByteOrderMark::Be),
+            ("UTF-16Le", UtfType::Utf16, ByteOrderMark::Le),
+            ("UTF-16Be", UtfType::Utf16, ByteOrderMark::Be),
             ("utf-32le", UtfType::Utf32, ByteOrderMark::Le),
             ("utf-32be", UtfType::Utf32, ByteOrderMark::Be),
+            ("unicode", UtfType::Utf16, ByteOrderMark::NotPresent),
+            ("UNICODE", UtfType::Utf16, ByteOrderMark::NotPresent),
         ];
         for (input, r#type, byte_order) in testcases.iter() {
             let encoding = UtfEncoding::parse(input).expect(&input);
@@ -173,6 +184,7 @@ mod tests {
             ("utf-8", false),
             ("utf-16", true),
             ("utf-32", true),
+            ("unicode", true),
             ("utf-16le", false),
             ("utf-16be", false),
             ("utf-32le", false),
