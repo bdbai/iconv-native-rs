@@ -62,6 +62,23 @@ with_harness! {
         }
     }
 
+    fn test_convert_bom_resume() {
+        // Regression test: the output (256 bytes) is much larger than the
+        // initial output buffer (input.len() + 4), forcing the conversion to
+        // resume after E2BIG. The byte order detected from the BOM must
+        // survive across the resumed calls on all platforms.
+        let mut input = b"\xff\xfe".to_vec();
+        let mut expected = Vec::new();
+        for _ in 0..64 {
+            input.extend_from_slice(b"\x39\x5f");
+            expected.extend_from_slice(b"\x39\x5f\0\0");
+        }
+        let result = convert(&input, "utf-16", "utf-32le").unwrap();
+        assert_eq!(result, expected);
+        let result_lossy = convert_lossy(&input, "utf-16", "utf-32le").unwrap();
+        assert_eq!(result_lossy, expected, "lossy");
+    }
+
     fn test_convert_bom() {
         let testcases_be_16 = [
             (TEST_UTF8_BOM, &TEST_UTF16_DE_BOM_2[..], "utf-8", "utf-16"),

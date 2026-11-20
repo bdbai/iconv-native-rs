@@ -85,9 +85,13 @@ impl IconvHandle {
         }
     }
 
-    fn convert(&mut self, mut input: &[u8]) -> Result<Vec<u8>, (Vec<u8>, ConvertError)> {
+    fn convert(
+        &mut self,
+        mut input: &[u8],
+        capacity: usize,
+    ) -> Result<Vec<u8>, (Vec<u8>, ConvertError)> {
         // Ensure the initial capacity is not zero to avoid endless loop.
-        let mut output: Vec<u8> = Vec::with_capacity(input.len() + 4);
+        let mut output: Vec<u8> = Vec::with_capacity(capacity);
         unsafe {
             loop {
                 let mut inlen = input.len();
@@ -137,8 +141,10 @@ impl LossyIconv {
         IconvHandle::new(from_encoding, to_encoding, true).map(Self)
     }
 
-    pub fn convert(&mut self, input: &[u8]) -> Vec<u8> {
-        self.0.convert(input).unwrap_or_else(|(buf, _)| buf)
+    pub fn convert(&mut self, input: &[u8], capacity: usize) -> Vec<u8> {
+        self.0
+            .convert(input, capacity)
+            .unwrap_or_else(|(buf, _)| buf)
     }
 }
 
@@ -147,8 +153,8 @@ impl Iconv {
         IconvHandle::new(from_encoding, to_encoding, false).map(Self)
     }
 
-    pub fn convert(&mut self, input: &[u8]) -> Result<Vec<u8>, ConvertError> {
-        self.0.convert(input).map_err(|(_, e)| e)
+    pub fn convert(&mut self, input: &[u8], capacity: usize) -> Result<Vec<u8>, ConvertError> {
+        self.0.convert(input, capacity).map_err(|(_, e)| e)
     }
 }
 
