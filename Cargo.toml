@@ -1,7 +1,7 @@
 [package]
 name = "iconv-native"
 description = "A lightweight text encoding converter based on platform native API or libiconv"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["bdbai <bdbaiapp@163.com>"]
 categories = ["text-processing", "encoding", "internationalization"]
 keywords = ["encoding", "unicode", "wasm", "iconv"]
